@@ -1,0 +1,1111 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>闪闪坡 | AIGC Director</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&family=Playfair+Display:wght@700;900&display=swap');
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #0a0a0a;
+    --bg-elevated: #111111;
+    --bg-card: #1a1a1a;
+    --text-primary: #f0ece4;
+    --text-secondary: #8a8680;
+    --text-dim: #5a5650;
+    --accent: #c8a55a;
+    --accent-light: #e0c97a;
+    --accent-dark: #8a7030;
+    --border: rgba(200,165,90,0.15);
+    --border-hover: rgba(200,165,90,0.4);
+    --gradient-gold: linear-gradient(135deg, #c8a55a 0%, #e0c97a 50%, #c8a55a 100%);
+    --gradient-dark: linear-gradient(180deg, #0a0a0a 0%, #111 100%);
+    --radius: 8px;
+    --radius-lg: 16px;
+    --transition: 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Noto Sans SC', sans-serif;
+    background: var(--bg);
+    color: var(--text-primary);
+    line-height: 1.7;
+    font-weight: 300;
+    overflow-x: hidden;
+  }
+
+  /* ===== Scrollbar ===== */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--accent-dark); border-radius: 3px; }
+
+  /* ===== Navigation ===== */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+    padding: 0 48px; height: 72px;
+    display: flex; align-items: center; justify-content: space-between;
+    background: rgba(10,10,10,0.85);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    transition: var(--transition);
+  }
+  nav.scrolled { background: rgba(10,10,10,0.95); }
+  .nav-logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px; font-weight: 900;
+    background: var(--gradient-gold);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text; letter-spacing: 2px;
+  }
+  .nav-links { display: flex; gap: 36px; list-style: none; }
+  .nav-links a {
+    color: var(--text-secondary); text-decoration: none;
+    font-size: 13px; font-weight: 400; letter-spacing: 1.5px;
+    text-transform: uppercase; transition: color 0.3s;
+    position: relative;
+  }
+  .nav-links a::after {
+    content: ''; position: absolute; bottom: -4px; left: 0;
+    width: 0; height: 1px; background: var(--accent);
+    transition: width 0.3s;
+  }
+  .nav-links a:hover { color: var(--accent-light); }
+  .nav-links a:hover::after { width: 100%; }
+
+  /* ===== Hero ===== */
+  .hero {
+    min-height: 100vh; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center; padding: 120px 24px 80px;
+    position: relative; overflow: hidden;
+  }
+  .hero::before {
+    content: ''; position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 600px; height: 600px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(200,165,90,0.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 8px 20px; border: 1px solid var(--border);
+    border-radius: 100px; font-size: 12px;
+    letter-spacing: 3px; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 40px;
+    background: rgba(200,165,90,0.03);
+    animation: fadeInUp 1s 0.2s both;
+  }
+  .hero-badge .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--accent); animation: pulse 2s infinite;
+  }
+  .hero h1 {
+    font-family: 'Noto Sans SC', sans-serif;
+    font-size: clamp(48px, 8vw, 96px); font-weight: 900;
+    letter-spacing: 8px; line-height: 1.1;
+    animation: fadeInUp 1s 0.4s both;
+  }
+  .hero h1 span {
+    background: var(--gradient-gold);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero-subtitle {
+    margin-top: 24px; font-size: clamp(16px, 2.5vw, 22px);
+    color: var(--text-secondary); font-weight: 300;
+    letter-spacing: 6px; animation: fadeInUp 1s 0.6s both;
+  }
+  .hero-tagline {
+    margin-top: 16px; font-size: 14px;
+    color: var(--text-dim); letter-spacing: 2px;
+    animation: fadeInUp 1s 0.8s both;
+  }
+  .hero-cta {
+    margin-top: 48px; display: flex; gap: 16px;
+    animation: fadeInUp 1s 1s both;
+  }
+  .btn-primary {
+    padding: 14px 36px; background: var(--accent);
+    color: var(--bg); border: none; border-radius: 100px;
+    font-size: 14px; font-weight: 500; letter-spacing: 1px;
+    cursor: pointer; transition: var(--transition); text-decoration: none;
+  }
+  .btn-primary:hover { background: var(--accent-light); transform: translateY(-2px); }
+  .btn-outline {
+    padding: 14px 36px; background: transparent;
+    color: var(--accent); border: 1px solid var(--border-hover);
+    border-radius: 100px; font-size: 14px; font-weight: 400;
+    letter-spacing: 1px; cursor: pointer; transition: var(--transition);
+    text-decoration: none;
+  }
+  .btn-outline:hover { border-color: var(--accent); background: rgba(200,165,90,0.05); }
+
+  .hero-scroll {
+    position: absolute; bottom: 40px; left: 50%;
+    transform: translateX(-50%);
+    display: flex; flex-direction: column; align-items: center;
+    gap: 8px; color: var(--text-dim); font-size: 11px;
+    letter-spacing: 3px; text-transform: uppercase;
+    animation: fadeInUp 1s 1.2s both;
+  }
+  .hero-scroll .line {
+    width: 1px; height: 40px; background: var(--border);
+    position: relative; overflow: hidden;
+  }
+  .hero-scroll .line::after {
+    content: ''; position: absolute; top: -40px; left: 0;
+    width: 1px; height: 40px; background: var(--accent);
+    animation: scrollLine 2s infinite;
+  }
+
+  /* ===== Sections Common ===== */
+  section { padding: 120px 48px; max-width: 1400px; margin: 0 auto; }
+  .section-header {
+    display: flex; align-items: flex-end; justify-content: space-between;
+    margin-bottom: 64px; flex-wrap: wrap; gap: 24px;
+  }
+  .section-label {
+    font-size: 11px; letter-spacing: 4px; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 12px;
+  }
+  .section-title {
+    font-size: clamp(28px, 4vw, 42px); font-weight: 700;
+    letter-spacing: 2px; line-height: 1.2;
+  }
+  .section-line {
+    width: 60px; height: 2px;
+    background: var(--gradient-gold); margin-top: 16px;
+  }
+
+  /* ===== About ===== */
+  #about { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
+  .about-image {
+    width: 100%; aspect-ratio: 4/5;
+    background: var(--bg-card); border-radius: var(--radius-lg);
+    overflow: hidden; position: relative;
+    border: 1px solid var(--border);
+  }
+  .about-image-placeholder {
+    width: 100%; height: 100%;
+    background: linear-gradient(135deg, #1a1a1a 0%, #222 50%, #1a1a1a 100%);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    color: var(--text-dim);
+  }
+  .about-image-placeholder svg { width: 80px; height: 80px; opacity: 0.3; margin-bottom: 16px; }
+  .about-image-placeholder span { font-size: 13px; letter-spacing: 2px; }
+  .about-content h2 {
+    font-size: 14px; font-weight: 400; letter-spacing: 4px;
+    color: var(--accent); margin-bottom: 24px; text-transform: uppercase;
+  }
+  .about-content p {
+    font-size: 16px; color: var(--text-secondary);
+    margin-bottom: 20px; line-height: 2;
+  }
+  .about-content p strong { color: var(--text-primary); font-weight: 500; }
+  .about-tags { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 32px; }
+  .about-tag {
+    padding: 8px 18px; border: 1px solid var(--border);
+    border-radius: 100px; font-size: 12px;
+    color: var(--text-secondary); letter-spacing: 1px;
+    transition: var(--transition);
+  }
+  .about-tag:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ===== Works Filter ===== */
+  #works { padding-bottom: 0; }
+  .works-filter {
+    display: flex; gap: 12px; flex-wrap: wrap;
+  }
+  .filter-btn {
+    padding: 10px 24px; border: 1px solid var(--border);
+    border-radius: 100px; background: transparent;
+    color: var(--text-secondary); font-size: 13px;
+    letter-spacing: 1px; cursor: pointer;
+    transition: var(--transition); font-family: inherit;
+  }
+  .filter-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .filter-btn.active {
+    background: var(--accent); color: var(--bg);
+    border-color: var(--accent); font-weight: 500;
+  }
+
+  /* ===== Video Grid ===== */
+  .works-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+    gap: 32px; margin-top: 64px;
+    padding-bottom: 80px;
+  }
+  .video-card {
+    background: var(--bg-card); border-radius: var(--radius-lg);
+    overflow: hidden; border: 1px solid var(--border);
+    transition: var(--transition); cursor: pointer;
+    position: relative; text-decoration: none; color: inherit;
+    display: block;
+  }
+  .video-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--border-hover);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+  }
+  .video-card-thumb {
+    width: 100%; aspect-ratio: 16/9;
+    background: var(--bg-elevated);
+    position: relative; overflow: hidden;
+  }
+  .video-card-thumb .thumb-bg {
+    width: 100%; height: 100%;
+    position: relative; overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .thumb-poster {
+    width: 100%; height: 100%;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    position: relative; z-index: 1;
+    padding: 20px; text-align: center;
+  }
+  .poster-pattern {
+    position: absolute; inset: 0; z-index: 0;
+    background-image:
+      repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(255,255,255,0.015) 3px, rgba(255,255,255,0.015) 4px),
+      repeating-linear-gradient(90deg, transparent, transparent 3px, rgba(255,255,255,0.015) 3px, rgba(255,255,255,0.015) 4px);
+  }
+  .poster-vignette {
+    position: absolute; inset: 0; z-index: 0;
+    background: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.5) 100%);
+  }
+  .poster-tag {
+    font-size: 9px; letter-spacing: 3px; text-transform: uppercase;
+    color: rgba(255,255,255,0.5); margin-bottom: 10px;
+    position: relative; z-index: 1;
+  }
+  .poster-title {
+    font-size: clamp(16px, 2.5vw, 26px); font-weight: 900;
+    color: #fff; letter-spacing: 4px; line-height: 1.3;
+    text-shadow: 0 2px 30px rgba(0,0,0,0.6);
+    position: relative; z-index: 1;
+  }
+  .poster-title-en {
+    font-size: clamp(9px, 1.2vw, 13px); font-weight: 300;
+    color: rgba(255,255,255,0.4); letter-spacing: 2px;
+    margin-top: 6px; text-transform: uppercase;
+    position: relative; z-index: 1;
+  }
+  .poster-line {
+    width: 30px; height: 1px; margin-top: 12px;
+    background: rgba(255,255,255,0.3);
+    position: relative; z-index: 1;
+  }
+  .poster-year {
+    position: absolute; bottom: 14px; right: 16px;
+    font-size: 10px; color: rgba(255,255,255,0.25);
+    letter-spacing: 2px; z-index: 1;
+  }
+  .poster-deco-left {
+    position: absolute; top: 16px; left: 16px;
+    font-size: 9px; color: rgba(255,255,255,0.2);
+    letter-spacing: 2px; z-index: 1;
+  }
+  .video-card:hover .thumb-bg { transform: scale(1.03); }
+  .video-card-thumb { overflow: hidden; }
+  .thumb-bg .poster-img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    position: absolute; inset: 0;
+    z-index: 0;
+  }
+  .video-card-thumb .play-icon {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%) scale(0.9);
+    width: 56px; height: 56px; border-radius: 50%;
+    background: rgba(200,165,90,0.9); display: flex;
+    align-items: center; justify-content: center;
+    transition: var(--transition); opacity: 0;
+  }
+  .video-card:hover .play-icon { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  .play-icon svg { width: 20px; height: 20px; margin-left: 2px; }
+  .video-card-thumb .category-badge {
+    position: absolute; top: 16px; left: 16px;
+    padding: 4px 12px; border-radius: 100px;
+    font-size: 11px; letter-spacing: 1px;
+    backdrop-filter: blur(10px);
+  }
+  .badge-psa { background: rgba(59,130,246,0.15); color: #60a5fa; border: 1px solid rgba(59,130,246,0.2); }
+  .badge-commercial { background: rgba(200,165,90,0.15); color: var(--accent-light); border: 1px solid rgba(200,165,90,0.2); }
+  .badge-drama { background: rgba(168,85,247,0.15); color: #c084fc; border: 1px solid rgba(168,85,247,0.2); }
+  .badge-brand-ad { background: rgba(249,115,22,0.15); color: #fb923c; border: 1px solid rgba(249,115,22,0.2); }
+  .badge-brand-design { background: rgba(6,182,212,0.15); color: #22d3ee; border: 1px solid rgba(6,182,212,0.2); }
+  .badge-product { background: rgba(34,197,94,0.15); color: #4ade80; border: 1px solid rgba(34,197,94,0.2); }
+  .badge-city { background: rgba(236,72,153,0.15); color: #f472b6; border: 1px solid rgba(236,72,153,0.2); }
+  .video-card-thumb .award-badge {
+    position: absolute; top: 16px; right: 16px;
+    padding: 4px 12px; border-radius: 100px;
+    font-size: 10px; letter-spacing: 1px;
+    background: rgba(234,179,8,0.15); color: #fbbf24;
+    border: 1px solid rgba(234,179,8,0.3);
+  }
+  .video-card-body { padding: 24px; }
+  .video-card-body h3 {
+    font-size: 18px; font-weight: 600; margin-bottom: 8px;
+    letter-spacing: 0.5px;
+  }
+  .video-card-body .brand {
+    font-size: 13px; color: var(--accent); margin-bottom: 12px;
+    letter-spacing: 1px;
+  }
+  .video-card-body p {
+    font-size: 13px; color: var(--text-dim); line-height: 1.8;
+    display: -webkit-box; -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .video-card-body .meta {
+    margin-top: 16px; display: flex; gap: 16px;
+    font-size: 11px; color: var(--text-dim); letter-spacing: 0.5px;
+  }
+  .video-card-body .meta span { display: flex; align-items: center; gap: 4px; }
+
+  /* ===== Contact ===== */
+  #contact {
+    text-align: center; padding-bottom: 80px;
+    border-top: 1px solid var(--border); margin-top: 0;
+    padding-top: 120px;
+  }
+  .contact-title {
+    font-size: clamp(28px, 4vw, 48px); font-weight: 700;
+    margin-bottom: 16px; letter-spacing: 2px;
+  }
+  .contact-subtitle {
+    font-size: 16px; color: var(--text-secondary);
+    margin-bottom: 48px;
+  }
+  .contact-links { display: flex; justify-content: center; gap: 24px; flex-wrap: wrap; }
+  .contact-link {
+    display: flex; align-items: center; gap: 12px;
+    padding: 16px 32px; border: 1px solid var(--border);
+    border-radius: var(--radius); background: var(--bg-card);
+    color: var(--text-secondary); text-decoration: none;
+    font-size: 14px; transition: var(--transition);
+  }
+  .contact-link:hover {
+    border-color: var(--accent); color: var(--accent);
+    transform: translateY(-2px);
+  }
+  .contact-link svg { width: 20px; height: 20px; }
+
+  /* ===== Footer ===== */
+  footer {
+    text-align: center; padding: 40px 48px;
+    border-top: 1px solid var(--border);
+    color: var(--text-dim); font-size: 12px; letter-spacing: 1px;
+  }
+
+  /* ===== Animations ===== */
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+  @keyframes scrollLine {
+    0% { top: -40px; }
+    100% { top: 40px; }
+  }
+
+  .reveal {
+    opacity: 0; transform: translateY(40px);
+    transition: opacity 0.8s, transform 0.8s;
+  }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+
+  /* ===== Responsive ===== */
+  @media (max-width: 900px) {
+    nav { padding: 0 24px; }
+    section { padding: 80px 24px; }
+    #about { grid-template-columns: 1fr; gap: 40px; }
+    .works-grid { grid-template-columns: 1fr; }
+    .section-header { flex-direction: column; align-items: flex-start; }
+    .hero { padding: 100px 24px 60px; }
+    .hero-cta { flex-direction: column; align-items: center; }
+  }
+  @media (max-width: 600px) {
+    .nav-links { gap: 20px; }
+    .nav-links a { font-size: 11px; letter-spacing: 1px; }
+    .works-grid { gap: 20px; }
+  }
+
+  /* ===== Modal / Inline Player ===== */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 2000;
+    background: rgba(0,0,0,0.9); backdrop-filter: blur(12px);
+    display: none; align-items: center; justify-content: center;
+    padding: 24px;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal-wrapper {
+    display: flex; flex-direction: column; align-items: center; gap: 0;
+    max-width: 960px; width: 100%;
+  }
+  .modal-content {
+    width: 100%; aspect-ratio: 16/9;
+    background: #000; border-radius: var(--radius-lg);
+    border: 1px solid var(--border); overflow: hidden;
+    position: relative;
+  }
+  .modal-content iframe {
+    width: 100%; height: 100%; border: none;
+  }
+  .modal-external-bar {
+    width: 100%;
+    display: flex; align-items: center; justify-content: center;
+    padding: 16px 0 0;
+  }
+  .modal-external-bar a {
+    color: var(--accent); text-decoration: none; font-size: 14px;
+    letter-spacing: 0.5px; padding: 8px 24px;
+    border: 1px solid rgba(200,165,90,0.3); border-radius: 100px;
+    transition: var(--transition); white-space: nowrap;
+  }
+  .modal-external-bar a:hover {
+    background: rgba(200,165,90,0.1); border-color: var(--accent);
+  }
+  .modal-fallback {
+    width: 100%; height: 100%;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 16px;
+    color: var(--text-dim);
+  }
+  .modal-fallback svg { width: 48px; height: 48px; opacity: 0.4; }
+  .modal-fallback p { font-size: 14px; }
+  .coming-soon-bubble {
+    display: inline-flex; align-items: center; gap: 10px;
+    padding: 20px 36px; border-radius: 16px;
+    background: linear-gradient(135deg, rgba(200,165,90,0.15) 0%, rgba(200,165,90,0.08) 100%);
+    border: 1px solid rgba(200,165,90,0.35);
+    color: var(--accent-light); font-size: 18px; font-weight: 500;
+    letter-spacing: 2px;
+    box-shadow: 0 8px 32px rgba(200,165,90,0.1), inset 0 1px 0 rgba(255,255,255,0.05);
+    animation: bubblePulse 2.5s ease-in-out infinite;
+  }
+  @keyframes bubblePulse {
+    0%, 100% { box-shadow: 0 8px 32px rgba(200,165,90,0.1), inset 0 1px 0 rgba(255,255,255,0.05); }
+    50% { box-shadow: 0 8px 40px rgba(200,165,90,0.2), inset 0 1px 0 rgba(255,255,255,0.08); }
+  }
+  .modal-fallback .fallback-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 12px 28px; background: var(--accent);
+    color: var(--bg); border: none; border-radius: 100px;
+    font-size: 14px; font-weight: 500; letter-spacing: 0.5px;
+    cursor: pointer; transition: var(--transition);
+    text-decoration: none; margin-top: 8px;
+  }
+  .modal-fallback .fallback-btn:hover { background: var(--accent-light); transform: translateY(-1px); }
+  .modal-close {
+    position: absolute; top: 16px; right: 16px;
+    width: 40px; height: 40px; border-radius: 50%;
+    background: rgba(255,255,255,0.1); border: none;
+    color: white; font-size: 20px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: var(--transition); z-index: 10;
+  }
+  .modal-close:hover { background: rgba(255,255,255,0.2); }
+
+  /* Particle Background */
+  .particles {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none; z-index: 0; overflow: hidden;
+  }
+  .particle {
+    position: absolute; width: 2px; height: 2px;
+    background: var(--accent); border-radius: 50%; opacity: 0;
+    animation: float linear infinite;
+  }
+  @keyframes float {
+    0% { opacity: 0; transform: translateY(100vh) scale(0); }
+    10% { opacity: 0.6; }
+    90% { opacity: 0.6; }
+    100% { opacity: 0; transform: translateY(-10vh) scale(1); }
+  }
+
+  /* Ensure content above particles */
+  nav, .hero, section, #contact, footer { position: relative; z-index: 1; }
+</style>
+</head>
+<body>
+
+<!-- Particles -->
+<div class="particles" id="particles"></div>
+
+<!-- Navigation -->
+<nav id="navbar">
+  <div class="nav-logo">闪闪坡</div>
+  <ul class="nav-links">
+    <li><a href="#about">关于</a></li>
+    <li><a href="#works">作品</a></li>
+    <li><a href="#contact">合作</a></li>
+  </ul>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-badge">
+    <span class="dot"></span>
+    AIGC Director
+  </div>
+  <h1><span>闪闪坡</span></h1>
+  <p class="hero-subtitle">AI-Native Storyteller</p>
+  <p class="hero-tagline">用AIGC重新定义视觉叙事的可能</p>
+  <div class="hero-cta">
+    <a href="#works" class="btn-primary">浏览作品</a>
+    <a href="#contact" class="btn-outline">合作洽谈</a>
+  </div>
+  <div class="hero-scroll">
+    <span>SCROLL</span>
+    <div class="line"></div>
+  </div>
+</section>
+
+<!-- About -->
+<section id="about">
+  <div class="about-image reveal">
+    <img src="director-portrait.jpg" alt="闪闪坡导演肖像" style="width:100%;height:100%;object-fit:cover;display:block;">
+  </div>
+  <div class="about-content reveal">
+    <h2>关于导演</h2>
+    <p>
+      <strong>闪闪坡</strong>，AIGC导演，职业编剧，上海戏剧学院毕业，上海柏都文化创意工作室创始人。专注以AI技术驱动影视创作，作品涵盖<strong>宣传片</strong>、<strong>品牌广告</strong>、<strong>AI真人影视</strong>三大创作方向。
+    </p>
+    <p>
+      叙事作品以情感叙事为核心，擅长将品牌诉求融入打动人心的故事中。代表作品《离家过年》获TapNow AIGC比赛一等奖。广告风格突出，擅长反转和特异性记忆点。广告作品覆盖美团、岚图汽车、安慕希、哈尔滨啤酒等知名品牌。
+    </p>
+    <p>
+      始终相信：AI是新时代的摄影机，表达仍是作品的灵魂。
+    </p>
+    <div class="about-tags">
+      <span class="about-tag">AIGC Director</span>
+      <span class="about-tag">AI Video</span>
+      <span class="about-tag">Brand Film</span>
+      <span class="about-tag">AI Drama</span>
+    </div>
+  </div>
+</section>
+
+<!-- Works -->
+<section id="works">
+  <div class="section-header">
+    <div>
+      <div class="section-label reveal">SELECTED WORKS</div>
+      <h2 class="section-title reveal">精选作品</h2>
+      <div class="section-line reveal"></div>
+    </div>
+    <div class="works-filter reveal">
+      <button class="filter-btn active" data-filter="all">全部作品</button>
+      <button class="filter-btn" data-filter="psa">公益广告</button>
+      <button class="filter-btn" data-filter="brand-ad">品牌广告</button>
+      <button class="filter-btn" data-filter="brand-design">品牌设计</button>
+      <button class="filter-btn" data-filter="product">产品展示</button>
+      <button class="filter-btn" data-filter="city">城市宣传片</button>
+      <button class="filter-btn" data-filter="drama">AI真人剧</button>
+    </div>
+  </div>
+
+  <div class="works-grid" id="worksGrid">
+
+    <!-- 1 《离家过年》 - 公益 -->
+    <div class="video-card reveal" data-category="psa" data-local-video="video-li-jia-guo-nian.mp4" data-external-url="https://v.douyin.com/AQ3jCN38BXY/">
+      <div class="video-card-thumb">
+        <div class="thumb-bg" style="background: linear-gradient(135deg, #1a1520 0%, #2d1a2e 50%, #1a1520 100%);">
+          <img src="poster-li-jia-guo-nian.png" class="poster-img" alt="离家过年">
+          <div class="poster-vignette"></div>
+        </div>
+        <span class="category-badge badge-psa">公益广告</span>
+        <span class="award-badge">&#127942; TapNow 一等奖</span>
+        <div class="play-icon">
+          <svg viewBox="0 0 24 24" fill="var(--bg)"><polygon points="8,5 20,12 8,19"/></svg>
+        </div>
+      </div>
+      <div class="video-card-body">
+        <h3>离家过年</h3>
+        <div class="brand">AIGC 春节短片</div>
+        <p>家人在哪，家就在哪。以温情视角讲述春节期间离家与归来的故事，获 TapNow AIGC 比赛一等奖。</p>
+        <div class="meta">
+          <span>2026</span>
+          <span>&#8226;</span>
+          <span>AIGC短片</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2 《万家灯火》 - 公益广告 -->
+    <div class="video-card reveal" data-category="psa" data-local-video="video-wan-jia-deng-huo.mp4" data-external-url="https://v.douyin.com/vI7ENk4Zgx0/">
+      <div class="video-card-thumb">
+        <div class="thumb-bg" style="background: linear-gradient(135deg, #1a1810 0%, #2a2415 50%, #1a1810 100%);">
+          <img src="poster-wanjia-denghuo.jpg" class="poster-img" alt="万家灯火">
+          <div class="poster-vignette"></div>
+        </div>
+        <span class="category-badge badge-psa">公益广告</span>
+        <div class="play-icon">
+          <svg viewBox="0 0 24 24" fill="var(--bg)"><polygon points="8,5 20,12 8,19"/></svg>
+        </div>
+      </div>
+      <div class="video-card-body">
+        <h3>万家灯火</h3>
+        <div class="brand">美团外卖 &#183; 1对1急送</div>
+        <p>若急送能穿越时空，最想把热腾腾的美食送给为祖国奋斗的前辈们。万家灯火从来不是天经地义，而是无数黑夜里点灯的人照亮了路。</p>
+        <div class="meta">
+          <span>美团外卖</span>
+          <span>&#8226;</span>
+          <span>AI创作大赛</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3 《小孩绝不说谎》 - 品牌广告 -->
+    <div class="video-card reveal" data-category="brand-ad" data-local-video="video-xiao-hai-jue-bu-shuo-huang.mp4" data-external-url="https://v.douyin.com/qXduPBd2C_w/">
+      <div class="video-card-thumb">
+        <div class="thumb-bg" style="background: linear-gradient(135deg, #101520 0%, #1a2535 50%, #101520 100%);">
+          <img src="poster-xiao-hai-jue-bu-shuo-huang.png" class="poster-img" alt="小孩绝不说谎">
+          <div class="poster-vignette"></div>
+        </div>
+        <span class="category-badge badge-brand-ad">品牌广告</span>
+        <div class="play-icon">
+          <svg viewBox="0 0 24 24" fill="var(--bg)"><polygon points="8,5 20,12 8,19"/></svg>
+        </div>
+      </div>
+      <div class="video-card-body">
+        <h3>小孩绝不说谎</h3>
+        <div class="brand">岚图汽车 &#183; 泰山X8</div>
+        <p>以童真视角破题，孩子一篇"离谱"日记引出智能驾驶、车内大床、超大座舱等配置。父亲以"并不离谱"带老师亲鉴实车，结尾温情反转。</p>
+        <div class="meta">
+          <span>岚图汽车</span>
+          <span>&#8226;</span>
+          <span>AI视频大赛</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4 《哈啤·人间大炮》 - 品牌广告 -->
+    <div class="video-card reveal" data-category="brand-ad" data-local-video="video-ha-pi-ren-jian-da-pao.mp4" data-external-url="https://v.douyin.com/1sq-8C1HSNo/">
+      <div class="video-card-thumb">
+        <div class="thumb-bg" style="background: linear-gradient(135deg, #1a1515 0%, #2d1e1e 50%, #1a1515 100%);">
+          <img src="poster-ha-pi-ren-jian-da-pao.jpg" class="poster-img" alt="哈啤·人间大炮">
+          <div class="poster-vignette"></div>
+        </div>
+        <span class="category-badge badge-brand-ad">品牌广告</span>
+        <div class="play-icon">
+          <svg viewBox="0 0 24 24" fill="var(--bg)"><polygon points="8,5 20,12 8,19"/></svg>
+        </div>
+      </div>
+      <div class="video-card-body">
+        <h3>哈啤 &#183; 人间大炮</h3>
+        <div class="brand">哈尔滨啤酒 &#183; AI舞林大会</div>
+        <p>当炽热灾星降临，全人类一起开哈啤直冲云霄，轰穿大气层！脑洞科幻短片，荒诞热血的风格完美契合品牌调性。</p>
+        <div class="meta">
+          <span>哈尔滨啤酒</span>
+          <span>&#8226;</span>
+          <span>即梦AI</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5 《蓝莓就对啦！》 - 品牌广告 - 安慕希 -->
+    <div class="video-card reveal" data-category="brand-ad" data-local-video="video-lan-mei-dui-la.mp4" data-external-url="https://v.douyin.com/c4AsJdFkLKU/">
+      <div class="video-card-thumb">
+        <div class="thumb-bg" style="background: linear-gradient(135deg, #101a15 0%, #182d25 50%, #101a15 100%);">
+          <img src="poster-lan-mei-dui-la.png" class="poster-img" alt="蓝莓就对啦！">
+          <div class="poster-vignette"></div>
+        </div>
+        <span class="category-badge badge-brand-ad">品牌广告</span>
+        <div class="play-icon">
+          <svg viewBox="0 0 24 24" fill="var(--bg)"><polygon points="8,5 20,12 8,19"/></svg>
+        </div>
+      </div>
+      <div class="video-card-body">
+        <h3>蓝莓就对啦！</h3>
+        <div class="brand">安慕希 &#183; 品牌广告</div>
+        <p>为安慕希蓝莓口味酸奶打造的AI创意广告，以活泼有趣的视觉语言传递产品卖点。</p>
+        <div class="meta">
+          <span>安慕希</span>
+          <span>&#8226;</span>
+          <span>品牌广告</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6 《我有一指可破万物》 - 品牌广告 - 安慕希 -->
+    <div class="video-card reveal" data-category="brand-ad" data-local-video="video-wo-you-yi-zhi-ke-po-wan-wu.mp4" data-external-url="https://v.douyin.com/Miu9WEbYqKY/">
+      <div class="video-card-thumb">
+        <div class="thumb-bg" style="background: linear-gradient(135deg, #151a10 0%, #1e2d18 50%, #151a10 100%);">
+          <img src="poster-wo-you-yi-zhi-ke-po-wan-wu.png" class="poster-img" alt="我有一指可破万物">
+          <div class="poster-vignette"></div>
+        </div>
+        <span class="category-badge badge-brand-ad">品牌广告</span>
+        <div class="play-icon">
+          <svg viewBox="0 0 24 24" fill="var(--bg)"><polygon points="8,5 20,12 8,19"/></svg>
+        </div>
+      </div>
+      <div class="video-card-body">
+        <h3>我有一指可破万物</h3>
+        <div class="brand">安慕希 &#183; 品牌广告</div>
+        <p>以"一指磕破万物"的创意概念，展现安慕希酸奶的新鲜与纯净，用AIGC呈现极具冲击力的视觉效果。</p>
+        <div class="meta">
+          <span>安慕希</span>
+          <span>&#8226;</span>
+          <span>品牌广告</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 7 《城市探索者·全天候系列战甲》 - 品牌设计 -->
+    <div class="video-card reveal" data-category="brand-design" data-local-video="video-cheng-shi-tan-suo-zhe.mp4" data-external-url="https://www.zcool.com.cn/work/ZNzM1NDg3NzY=.html" data-external-text="设计图和细节 请点击">
+      <div class="video-card-thumb">
+        <div class="thumb-bg" style="background: linear-gradient(135deg, #1a1a10 0%, #252518 50%, #1a1a10 100%);">
+          <img src="poster-cheng-shi-tan-suo-zhe.jpg" class="poster-img" alt="城市探索者">
+          <div class="poster-vignette"></div>
+        </div>
+        <span class="category-badge badge-brand-design">品牌设计</span>
+        <div class="play-icon">
+          <svg viewBox="0 0 24 24" fill="var(--bg)"><polygon points="8,5 20,12 8,19"/></svg>
+        </div>
+      </div>
+      <div class="video-card-body">
+        <h3>城市探索者 &#183; 全天候系列战甲</h3>
+        <div class="brand">美团 &#183; 黄衣服设计大赛</div>
+        <p>你负责准时送达，我们负责护你周全。全防冲锋衣、LED战术头盔、凉感干爽T恤、循环送风冰甲、持久保温火甲，为骑手打造完整防护体系。</p>
+        <div class="meta">
+          <span>美团</span>
+          <span>&#8226;</span>
+          <span>概念设计</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 8 《高精度机械手展示视频》 - 产品展示 -->
+    <div class="video-card reveal" data-category="product" data-local-video="video-ji-xie-shou.mp4">
+      <div class="video-card-thumb">
+        <div class="thumb-bg" style="background: linear-gradient(135deg, #101518 0%, #1a252d 50%, #101518 100%);">
+          <img src="poster-ji-xie-shou.jpg" class="poster-img" alt="高精度机械手">
+          <div class="poster-vignette"></div>
+        </div>
+        <span class="category-badge badge-product">产品展示</span>
+        <div class="play-icon">
+          <svg viewBox="0 0 24 24" fill="var(--bg)"><polygon points="8,5 20,12 8,19"/></svg>
+        </div>
+      </div>
+      <div class="video-card-body">
+        <h3>高精度机械手展示</h3>
+        <div class="brand">跨境展会 &#183; 产品视频</div>
+        <p>高精度机械手产品展示，用AIGC技术呈现工业科技的力量感与精密之美，适用于跨境展会推广。</p>
+        <div class="meta">
+          <span>科技产品</span>
+          <span>&#8226;</span>
+          <span>展示视频</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 9 《替身枪神》 - AI真人剧 -->
+    <div class="video-card reveal" data-category="drama" data-coming-soon="即将上线，保密请谅解">
+      <div class="video-card-thumb">
+        <div class="thumb-bg" style="background: linear-gradient(135deg, #15101a 0%, #251830 50%, #15101a 100%);">
+          <img src="poster-ti-shen-qiang-shen.jpg" class="poster-img" alt="替身枪神">
+          <div class="poster-vignette"></div>
+        </div>
+        <span class="category-badge badge-drama">AI真人剧</span>
+        <div class="play-icon">
+          <svg viewBox="0 0 24 24" fill="var(--bg)"><polygon points="8,5 20,12 8,19"/></svg>
+        </div>
+      </div>
+      <div class="video-card-body">
+        <h3>替身枪神</h3>
+        <div class="brand">AI真人剧 &#183; 片段</div>
+        <p>AI真人剧精选片段，以AIGC为创作引擎，探索虚拟与现实的叙事边界，让数字画面承载动作类型故事。</p>
+        <div class="meta">
+          <span>AI真人剧</span>
+          <span>&#8226;</span>
+          <span>动作片段</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 10 《香港2026》 - 城市宣传片 -->
+    <div class="video-card reveal" data-category="city" data-local-video="video-hong-kong-2026.mp4" data-external-url="https://v.douyin.com/siwm4DvkQis/">
+      <div class="video-card-thumb">
+        <div class="thumb-bg" style="background: linear-gradient(135deg, #10151a 0%, #1a2030 50%, #10151a 100%);">
+          <img src="poster-hong-kong-2026.jpg" class="poster-img" alt="香港2026">
+          <div class="poster-vignette"></div>
+        </div>
+        <span class="category-badge badge-city">城市宣传片</span>
+        <div class="play-icon">
+          <svg viewBox="0 0 24 24" fill="var(--bg)"><polygon points="8,5 20,12 8,19"/></svg>
+        </div>
+      </div>
+      <div class="video-card-body">
+        <h3>香港2026</h3>
+        <div class="brand">城市宣传片</div>
+        <p>用AIGC镜头呈现中国香港的都市魅力与未来展望，光影流转间感受这座城市的活力与温度。</p>
+        <div class="meta">
+          <span>中国香港</span>
+          <span>&#8226;</span>
+          <span>城市宣传片</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- Contact -->
+<section id="contact">
+  <div class="section-label reveal">GET IN TOUCH</div>
+  <h2 class="contact-title reveal">期待与您合作</h2>
+  <p class="contact-subtitle reveal">品牌广告 &#183; 公益短片 &#183; AI影视 &#183; 电商设计</p>
+  <div class="contact-links reveal">
+    <a href="https://www.douyin.com/user/MS4wLjABAAAAJlvR1SAwWiDmjesHBPytB1DqqpxTYN--UefmYh1VxV4" target="_blank" class="contact-link">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 12a3 3 0 106 0 3 3 0 00-6 0z"/><path d="M17.8 14.8A6 6 0 006.2 14.8"/><path d="M12 2v2"/><path d="M12 20v2"/><circle cx="12" cy="12" r="10"/></svg>
+      抖音
+    </a>
+    <a href="javascript:void(0)" class="contact-link" id="wechatBtn" title="点击复制微信号">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8.5 10a.5.5 0 100-1 .5.5 0 000 1zm7 0a.5.5 0 100-1 .5.5 0 000 1zM12 2C6.5 2 2 5.8 2 10.5c0 2.7 1.6 5.2 4 6.8V21l3.5-2c.8.2 1.6.3 2.5.3 5.5 0 10-3.8 10-8.5S17.5 2 12 2z"/></svg>
+      微信：locken_
+    </a>
+    <a href="https://www.zcool.com.cn/u/28978523" target="_blank" class="contact-link">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 9h18"/><path d="M9 3v18"/></svg>
+      站酷
+    </a>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <p>&copy; 2026 闪闪坡 &#183; 上海柏都文化创意工作室 &#183; All Rights Reserved</p>
+</footer>
+
+<!-- Modal / Inline Player -->
+<div class="modal-overlay" id="modal">
+  <div class="modal-wrapper">
+    <div class="modal-content" id="modalContent">
+      <button class="modal-close" id="modalClose">&times;</button>
+      <div id="modalBody"></div>
+    </div>
+    <div class="modal-external-bar" id="modalExternal"></div>
+  </div>
+</div>
+
+<script>
+// === Particles ===
+(function() {
+  const container = document.getElementById('particles');
+  for (let i = 0; i < 30; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    p.style.left = Math.random() * 100 + '%';
+    p.style.animationDuration = (8 + Math.random() * 12) + 's';
+    p.style.animationDelay = Math.random() * 10 + 's';
+    p.style.width = p.style.height = (1 + Math.random() * 2) + 'px';
+    container.appendChild(p);
+  }
+})();
+
+// === Navbar scroll ===
+const navbar = document.getElementById('navbar');
+window.addEventListener('scroll', () => {
+  navbar.classList.toggle('scrolled', window.scrollY > 50);
+});
+
+// === Reveal on scroll ===
+const reveals = document.querySelectorAll('.reveal');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach((entry, i) => {
+    if (entry.isIntersecting) {
+      setTimeout(() => entry.target.classList.add('visible'), i * 80);
+      observer.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.1 });
+reveals.forEach(el => observer.observe(el));
+
+// === Filter ===
+const filterBtns = document.querySelectorAll('.filter-btn');
+const cards = document.querySelectorAll('.video-card');
+
+filterBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    filterBtns.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const filter = btn.dataset.filter;
+    cards.forEach(card => {
+      if (filter === 'all' || card.dataset.category === filter) {
+        card.style.display = 'block';
+        setTimeout(() => { card.style.opacity = '1'; card.style.transform = 'translateY(0)'; }, 50);
+      } else {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        setTimeout(() => { card.style.display = 'none'; }, 400);
+      }
+    });
+  });
+});
+
+// === Smooth scroll for nav links ===
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+  anchor.addEventListener('click', function(e) {
+    e.preventDefault();
+    const target = document.querySelector(this.getAttribute('href'));
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+});
+
+// === WeChat button ===
+document.getElementById('wechatBtn').addEventListener('click', function() {
+  const wechatId = 'locken_';
+  navigator.clipboard.writeText(wechatId).then(() => {
+    const orig = this.innerHTML;
+    this.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:20px;height:20px"><path d="M20 6L9 17l-5-5"/></svg> 已复制微信号';
+    this.style.borderColor = 'var(--accent)';
+    this.style.color = 'var(--accent)';
+    setTimeout(() => {
+      this.innerHTML = orig;
+      this.style.borderColor = '';
+      this.style.color = '';
+    }, 2000);
+  }).catch(() => {
+    // fallback for browsers without clipboard API
+    const ta = document.createElement('textarea');
+    ta.value = wechatId; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+    alert('微信号已复制：' + wechatId);
+  });
+});
+
+// === Card hover effect ===
+cards.forEach(card => {
+  card.addEventListener('mouseenter', function() {
+    this.style.transition = 'all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+  });
+});
+
+// === Inline Video Player (Modal) ===
+(function() {
+  const modal = document.getElementById('modal');
+  const modalBody = document.getElementById('modalBody');
+  const modalExternal = document.getElementById('modalExternal');
+  const modalClose = document.getElementById('modalClose');
+
+  function closePlayer() {
+    modal.classList.remove('active');
+    modalBody.innerHTML = '';
+    modalExternal.innerHTML = '';
+    document.body.style.overflow = '';
+  }
+
+  // Set the external link bar below the player
+  function setExternalBar(externalUrl, text) {
+    if (externalUrl) {
+      modalExternal.innerHTML = '<a href="' + externalUrl + '" target="_blank" rel="noopener">' + (text || '高清版本请点击') + ' &#8599;</a>';
+    } else {
+      modalExternal.innerHTML = '';
+    }
+  }
+
+  // Intercept ALL video card clicks (skip cards with data-no-modal)
+  document.querySelectorAll('.video-card').forEach(card => {
+    card.style.cursor = 'pointer';
+    card.addEventListener('click', function(e) {
+      // Direct link cards — no modal
+      if (this.hasAttribute('data-no-modal')) return;
+
+      // Cards with native <a> href but no local video and no modal — let native behavior
+      if (this.tagName === 'A' && !this.getAttribute('data-local-video') && !this.getAttribute('data-external-url') && !this.getAttribute('data-coming-soon')) return;
+
+      e.preventDefault();
+
+      const title = this.querySelector('h3').textContent.trim();
+      const localVideo = this.getAttribute('data-local-video');
+      const href = this.getAttribute('href');
+      const externalUrl = this.getAttribute('data-external-url');
+      const comingSoon = this.getAttribute('data-coming-soon');
+
+      modal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+
+      // Coming soon
+      if (comingSoon) {
+        modalBody.innerHTML = `
+          <div class="modal-fallback">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" style="opacity:0.3">
+              <polygon points="8,5 20,12 8,19"/>
+            </svg>
+            <div class="coming-soon-bubble">${comingSoon}</div>
+          </div>
+        `;
+        modalExternal.innerHTML = '';
+        return;
+      }
+
+      // Local video
+      if (localVideo) {
+        const extText = this.getAttribute('data-external-text') || '高清版本请点击';
+        modalBody.innerHTML = `
+          <video src="${localVideo}" controls autoplay playsinline style="width:100%;height:100%;object-fit:contain;background:#000;"></video>
+        `;
+        setExternalBar(externalUrl, extText);
+        return;
+      }
+
+      // Bilibili embed
+      if (href && href.includes('bilibili.com')) {
+        const bvMatch = href.match(/BV[A-Za-z0-9]+/);
+        if (bvMatch) {
+          const embedUrl = 'https://player.bilibili.com/player.html?bvid=' + bvMatch[0] + '&autoplay=1&high_quality=1&danmaku=0';
+          const extText = this.getAttribute('data-external-text') || '高清版本请点击';
+          modalBody.innerHTML = `
+            <iframe src="${embedUrl}" allowfullscreen allow="autoplay"></iframe>
+          `;
+          setExternalBar(externalUrl, extText);
+          return;
+        }
+      }
+
+      // Unsupported platform — fallback with poster background
+      const posterImg = this.querySelector('.poster-img');
+      const posterSrc = posterImg ? posterImg.src : '';
+      const label = (externalUrl && externalUrl.includes('douyin')) ? '抖音' : (externalUrl && externalUrl.includes('zcool')) ? '站酷' : '原站';
+      modalBody.innerHTML = `
+        <div class="modal-fallback" style="background: url('${posterSrc}') center center / cover no-repeat; position:relative;">
+          <div style="position:absolute;inset:0;background:rgba(0,0,0,0.65);"></div>
+          <div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:20px;padding:24px;">
+            <p style="color:var(--text-secondary);font-size:14px;letter-spacing:1px;">该平台暂不支持内嵌播放</p>
+            <a href="${externalUrl || href}" target="_blank" rel="noopener" class="fallback-btn" style="font-size:16px;padding:14px 36px;">
+              前往${label}观看 &#8599;
+            </a>
+          </div>
+        </div>
+      `;
+      modalExternal.innerHTML = '';
+    });
+  });
+
+  // Close handlers
+  modalClose.addEventListener('click', closePlayer);
+  modal.addEventListener('click', function(e) {
+    if (e.target === modal) closePlayer();
+  });
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && modal.classList.contains('active')) closePlayer();
+  });
+})();
+</script>
+</body>
+</html>
